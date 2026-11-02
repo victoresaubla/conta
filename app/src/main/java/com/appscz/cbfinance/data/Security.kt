@@ -17,7 +17,7 @@ import javax.crypto.spec.SecretKeySpec
  * Así, una base de datos finanzas.db del sistema web puede restaurarse en la app y los usuarios entran con su misma clave.
  */
 object Security {
-    private const val ITERATIONS = 600000
+    private const val ITERATIONS = 150000
     private const val SALT_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
     fun hash(password: String): String {

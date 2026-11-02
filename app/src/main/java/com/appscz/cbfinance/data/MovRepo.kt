@@ -8,6 +8,12 @@ enum class Kind(val table: String, val catTable: String, val singular: String, v
     GASTOS("gastos", "categorias_gastos", "Gasto", "Gastos"),
     REGIMEN("regimen", "categorias_regimen", "Régimen", "Régimen");
 
+    val newLabel: String get() = when (this) {
+        VENTAS -> "Nueva Venta"
+        COMPRAS -> "Nueva Compra"
+        GASTOS -> "Nuevo Gasto"
+        REGIMEN -> "Nuevo Régimen"
+    }
     val hasPlanilla: Boolean get() = this == GASTOS || this == REGIMEN
     val planillaTable: String get() = if (this == GASTOS) "planillas" else "planillas_regimen"
     val planillaFk: String get() = if (this == GASTOS) "gasto_id" else "regimen_id"

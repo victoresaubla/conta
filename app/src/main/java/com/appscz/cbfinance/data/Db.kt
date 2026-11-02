@@ -471,7 +471,17 @@ object Schema {
         Triple("idx_regimen_empresa", "regimen", "empresa_id"),
         Triple("idx_regimen_fecha", "regimen", "fecha"),
         Triple("idx_cuentas_cobrar_empresa", "cuentas_cobrar", "empresa_id"),
-        Triple("idx_cuentas_pagar_empresa", "cuentas_pagar", "empresa_id")
+        Triple("idx_cuentas_pagar_empresa", "cuentas_pagar", "empresa_id"),
+        Triple("idx_ventas_emp_fecha", "ventas", "empresa_id, fecha"),
+        Triple("idx_compras_emp_fecha", "compras", "empresa_id, fecha"),
+        Triple("idx_gastos_emp_fecha", "gastos", "empresa_id, fecha"),
+        Triple("idx_regimen_emp_fecha", "regimen", "empresa_id, fecha"),
+        Triple("idx_planillas_emp_fecha", "planillas", "empresa_id, fecha"),
+        Triple("idx_cc_emp_fecha", "cuentas_cobrar", "empresa_id, fecha_emision"),
+        Triple("idx_cp_emp_fecha", "cuentas_pagar", "empresa_id, fecha_emision"),
+        Triple("idx_pagos_cc", "pagos_cuentas_cobrar", "cuenta_cobrar_id"),
+        Triple("idx_pagos_cp", "pagos_cuentas_pagar", "cuenta_pagar_id"),
+        Triple("idx_ue_usuario", "usuario_empresa", "usuario_id")
     )
 
     val REQUIRED_TABLES = listOf("usuarios", "empresas", "usuario_empresa", "ventas", "compras", "gastos")
