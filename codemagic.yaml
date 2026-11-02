@@ -7,7 +7,7 @@ workflows:
   # ---------------------------------------------------------------
   android-apk:
     name: APK instalable (debug)
-    instance_type: linux_x2
+    instance_type: linux
     max_build_duration: 30
     environment:
       java: 17
@@ -42,7 +42,7 @@ workflows:
   # ---------------------------------------------------------------
   android-release:
     name: Release firmado (APK + AAB)
-    instance_type: linux_x2
+    instance_type: linux
     max_build_duration: 30
     environment:
       java: 17
