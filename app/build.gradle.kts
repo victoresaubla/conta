@@ -15,6 +15,9 @@ if (!sideloadJks.exists() && sideloadB64.exists()) {
     sideloadJks.writeBytes(Base64.getMimeDecoder().decode(sideloadB64.readText().trim()))
 }
 
+// Si no existe el keystore fijo, se usa la firma debug normal de Android (el build no se rompe)
+val hasSideload = sideloadJks.exists()
+
 android {
     namespace = "com.appscz.cbfinance"
     compileSdk = 34
@@ -30,11 +33,13 @@ android {
     signingConfigs {
         // Firma fija incluida en el proyecto: todas las versiones (debug y release) se instalan
         // una encima de otra sin perder datos. Para Play Store usa el keystore de Codemagic (ver codemagic.yaml).
-        create("sideload") {
-            storeFile = sideloadJks
-            storePassword = "cbconsultores"
-            keyAlias = "cb"
-            keyPassword = "cbconsultores"
+        if (hasSideload) {
+            create("sideload") {
+                storeFile = sideloadJks
+                storePassword = "cbconsultores"
+                keyAlias = "cb"
+                keyPassword = "cbconsultores"
+            }
         }
         if (cmKeystorePath != null) {
             create("cmrelease") {
@@ -48,7 +53,9 @@ android {
 
     buildTypes {
         debug {
-            signingConfig = signingConfigs.getByName("sideload")
+            if (hasSideload) {
+                signingConfig = signingConfigs.getByName("sideload")
+            }
         }
         release {
             // R8 + recorte de recursos: la app release es bastante más rápida y liviana que la debug
@@ -57,8 +64,10 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = if (System.getenv("CM_USE_PLAY_KEY") == "true" && cmKeystorePath != null) {
                 signingConfigs.getByName("cmrelease")
-            } else {
+            } else if (hasSideload) {
                 signingConfigs.getByName("sideload")
+            } else {
+                signingConfigs.getByName("debug")
             }
         }
     }
