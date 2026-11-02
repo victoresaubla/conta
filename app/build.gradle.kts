@@ -6,6 +6,13 @@ plugins {
 // Firma para release: Codemagic inyecta estas variables cuando se configura "android_signing"
 val cmKeystorePath: String? = System.getenv("CM_KEYSTORE_PATH")
 
+// Firma fija para instalar el APK: acepta app/cb-sideload.jks o su versión en texto app/cb-sideload.b64
+val sideloadJks = file("cb-sideload.jks")
+val sideloadB64 = file("cb-sideload.b64")
+if (!sideloadJks.exists() && sideloadB64.exists()) {
+    sideloadJks.writeBytes(java.util.Base64.getMimeDecoder().decode(sideloadB64.readText().trim()))
+}
+
 android {
     namespace = "com.appscz.cbfinance"
     compileSdk = 34
@@ -22,7 +29,7 @@ android {
         // Firma fija incluida en el proyecto: todas las versiones (debug y release) se instalan
         // una encima de otra sin perder datos. Para Play Store usa el keystore de Codemagic (ver codemagic.yaml).
         create("sideload") {
-            storeFile = file("signing/cb-sideload.jks")
+            storeFile = sideloadJks
             storePassword = "cbconsultores"
             keyAlias = "cb"
             keyPassword = "cbconsultores"
