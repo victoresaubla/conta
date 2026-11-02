@@ -1,66 +1,66 @@
-# Codemagic - C&B Consultores (Android / Kotlin / Jetpack Compose)
-# Sube este proyecto a GitHub, conéctalo en Codemagic y elige este archivo codemagic.yaml.
 workflows:
-
-  # ---------------------------------------------------------------
-  # 1) APK INSTALABLE (debug) - el más simple, no requiere firma
-  # ---------------------------------------------------------------
   android-apk:
-    name: APK instalable (debug)
-    instance_type: linux
-    max_build_duration: 30
+    name: C&B - APK de prueba
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+
     environment:
       java: 17
+
+    cache:
+      cache_paths:
+        - $HOME/.gradle/caches
+        - $HOME/.gradle/wrapper
+
     scripts:
-      - name: Configurar SDK de Android
+      - name: Verificar Gradle Wrapper
         script: |
-          echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/local.properties"
-      - name: Preparar Gradle Wrapper
+          test -f gradlew
+          test -f gradle/wrapper/gradle-wrapper.jar
+          chmod +x gradlew
+
+      - name: Limpiar proyecto
         script: |
-          if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
-            gradle wrapper --gradle-version 8.9 --distribution-type bin
-          fi
-          chmod +x ./gradlew
-      - name: Compilar APK
+          ./gradlew clean
+
+      - name: Generar APK Debug
         script: |
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          ./gradlew assembleDebug
+
     artifacts:
       - app/build/outputs/**/*.apk
-    # publishing:
-    #   email:
-    #     recipients:
-    #       - tu-correo@ejemplo.com
-    #     notify:
-    #       success: true
-    #       failure: true
 
-  # ---------------------------------------------------------------
-  # 2) RELEASE FIRMADO (APK + AAB para Play Store)
-  #    Requiere subir tu keystore en Codemagic:
-  #    Team settings > Code signing identities > Android keystores
-  #    y ponerle la referencia "cb_keystore" (o cambiar el nombre aquí).
-  # ---------------------------------------------------------------
   android-release:
-    name: Release firmado (APK + AAB)
-    instance_type: linux
-    max_build_duration: 30
+    name: C&B - APK y AAB de publicación
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+
     environment:
       java: 17
       android_signing:
         - cb_keystore
+
+    cache:
+      cache_paths:
+        - $HOME/.gradle/caches
+        - $HOME/.gradle/wrapper
+
     scripts:
-      - name: Configurar SDK de Android
+      - name: Verificar Gradle Wrapper
         script: |
-          echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/local.properties"
-      - name: Preparar Gradle Wrapper
+          test -f gradlew
+          test -f gradle/wrapper/gradle-wrapper.jar
+          chmod +x gradlew
+
+      - name: Limpiar proyecto
         script: |
-          if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
-            gradle wrapper --gradle-version 8.9 --distribution-type bin
-          fi
-          chmod +x ./gradlew
-      - name: Compilar release
+          ./gradlew clean
+
+      - name: Generar APK y AAB Release
         script: |
-          ./gradlew assembleRelease bundleRelease --no-daemon --stacktrace
+          ./gradlew assembleRelease bundleRelease
+
     artifacts:
       - app/build/outputs/**/*.apk
       - app/build/outputs/**/*.aab
+      - app/build/outputs/mapping/release/**
