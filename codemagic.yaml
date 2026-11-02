@@ -30,6 +30,38 @@ workflows:
     artifacts:
       - app/build/outputs/**/*.apk
 
+  android-apk-rapido:
+    name: C&B - APK RAPIDO (release optimizado)
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+
+    environment:
+      java: 17
+
+    cache:
+      cache_paths:
+        - $HOME/.gradle/caches
+        - $HOME/.gradle/wrapper
+
+    scripts:
+      - name: Verificar Gradle Wrapper
+        script: |
+          test -f gradlew
+          test -f gradle/wrapper/gradle-wrapper.jar
+          chmod +x gradlew
+
+      - name: Limpiar proyecto
+        script: |
+          ./gradlew clean
+
+      - name: Generar APK Release optimizado
+        script: |
+          ./gradlew assembleRelease
+
+    artifacts:
+      - app/build/outputs/**/*.apk
+      - app/build/outputs/mapping/release/**
+
   android-release:
     name: C&B - APK y AAB de publicación
     instance_type: mac_mini_m2
@@ -37,6 +69,8 @@ workflows:
 
     environment:
       java: 17
+      vars:
+        CM_USE_PLAY_KEY: "true"
       android_signing:
         - cb_keystore
 
