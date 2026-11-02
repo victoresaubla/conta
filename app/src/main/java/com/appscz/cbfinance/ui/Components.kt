@@ -3,6 +3,7 @@
 package com.appscz.cbfinance.ui
 
 import android.app.DatePickerDialog
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -76,7 +77,8 @@ fun SectionCard(
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(2.dp, headerColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
         Row(
@@ -98,32 +100,25 @@ fun KpiCard(title: String, value: String, sub: String, color: Color, icon: Image
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(2.dp, color),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
-        Row(modifier = Modifier.height(IntrinsicSize.Min)) {
-            Box(
-                modifier = Modifier
-                    .width(5.dp)
-                    .fillMaxHeight()
-                    .background(color)
-            )
-            Column(modifier = Modifier.padding(12.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(30.dp)
-                            .clip(CircleShape)
-                            .background(color.copy(alpha = 0.15f)),
-                        contentAlignment = Alignment.Center
-                    ) { Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(18.dp)) }
-                    Spacer(Modifier.width(8.dp))
-                    Text(title, color = CB.Gray, fontSize = 12.sp, fontWeight = FontWeight.Medium, maxLines = 2)
-                }
-                Spacer(Modifier.height(8.dp))
-                Text(value, color = color, fontWeight = FontWeight.Bold, fontSize = 18.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                if (sub.isNotEmpty()) Text(sub, color = Color(0xFF8A8886), fontSize = 11.sp)
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(30.dp)
+                        .clip(CircleShape)
+                        .background(color.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) { Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(18.dp)) }
+                Spacer(Modifier.width(8.dp))
+                Text(title, color = CB.Gray, fontSize = 12.sp, fontWeight = FontWeight.Medium, maxLines = 2)
             }
+            Spacer(Modifier.height(8.dp))
+            Text(value, color = color, fontWeight = FontWeight.Bold, fontSize = 18.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (sub.isNotEmpty()) Text(sub, color = CB.Gray, fontSize = 11.sp)
         }
     }
 }

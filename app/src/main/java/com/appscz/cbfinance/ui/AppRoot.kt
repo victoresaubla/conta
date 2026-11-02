@@ -2,7 +2,13 @@
 
 package com.appscz.cbfinance.ui
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -68,8 +74,14 @@ fun AppRoot() {
         scope.launch { snack.showSnackbar((if (ok) "✅ " else "⚠️ ") + msg) }
     }
     var stage by remember { mutableStateOf("loading") }
+    val permLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
     LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
+            ContextCompat.checkSelfPermission(ctx, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+        ) {
+            permLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        }
         val restored = io {
             DbManager.db()
             val r = Session.restore()
@@ -114,6 +126,7 @@ fun AppRoot() {
 @Composable
 fun MainShell(onLogout: () -> Unit, onRestored: () -> Unit) {
     val user = Session.user ?: return
+    val ctx = LocalContext.current
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val notify = LocalNotify.current
@@ -175,6 +188,18 @@ fun MainShell(onLogout: () -> Unit, onRestored: () -> Unit) {
                             Icon(Icons.Filled.SwapHoriz, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
                         }
                     }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 22.dp, vertical = 8.dp)
+                    ) {
+                        Icon(if (ThemeState.dark) Icons.Filled.DarkMode else Icons.Filled.LightMode, contentDescription = null, tint = CB.Accent)
+                        Spacer(Modifier.width(12.dp))
+                        Text(if (ThemeState.dark) "Modo oscuro" else "Modo claro", modifier = Modifier.weight(1f))
+                        Switch(checked = ThemeState.dark, onCheckedChange = { ThemeState.set(ctx, it) })
+                    }
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     Spacer(Modifier.height(8.dp))
                     for (d in Dest.values()) {
                         if (d.adminOnly && !user.isAdmin) continue
@@ -224,7 +249,7 @@ fun MainShell(onLogout: () -> Unit, onRestored: () -> Unit) {
                     )
                 )
             },
-            containerColor = CB.Bg
+            containerColor = MaterialTheme.colorScheme.background
         ) { pad ->
             Box(modifier = Modifier
                 .padding(pad)
