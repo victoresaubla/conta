@@ -1,0 +1,66 @@
+# Codemagic - C&B Consultores (Android / Kotlin / Jetpack Compose)
+# Sube este proyecto a GitHub, conéctalo en Codemagic y elige este archivo codemagic.yaml.
+workflows:
+
+  # ---------------------------------------------------------------
+  # 1) APK INSTALABLE (debug) - el más simple, no requiere firma
+  # ---------------------------------------------------------------
+  android-apk:
+    name: APK instalable (debug)
+    instance_type: linux_x2
+    max_build_duration: 30
+    environment:
+      java: 17
+    scripts:
+      - name: Configurar SDK de Android
+        script: |
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/local.properties"
+      - name: Preparar Gradle Wrapper
+        script: |
+          if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
+            gradle wrapper --gradle-version 8.9 --distribution-type bin
+          fi
+          chmod +x ./gradlew
+      - name: Compilar APK
+        script: |
+          ./gradlew assembleDebug --no-daemon --stacktrace
+    artifacts:
+      - app/build/outputs/**/*.apk
+    # publishing:
+    #   email:
+    #     recipients:
+    #       - tu-correo@ejemplo.com
+    #     notify:
+    #       success: true
+    #       failure: true
+
+  # ---------------------------------------------------------------
+  # 2) RELEASE FIRMADO (APK + AAB para Play Store)
+  #    Requiere subir tu keystore en Codemagic:
+  #    Team settings > Code signing identities > Android keystores
+  #    y ponerle la referencia "cb_keystore" (o cambiar el nombre aquí).
+  # ---------------------------------------------------------------
+  android-release:
+    name: Release firmado (APK + AAB)
+    instance_type: linux_x2
+    max_build_duration: 30
+    environment:
+      java: 17
+      android_signing:
+        - cb_keystore
+    scripts:
+      - name: Configurar SDK de Android
+        script: |
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/local.properties"
+      - name: Preparar Gradle Wrapper
+        script: |
+          if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
+            gradle wrapper --gradle-version 8.9 --distribution-type bin
+          fi
+          chmod +x ./gradlew
+      - name: Compilar release
+        script: |
+          ./gradlew assembleRelease bundleRelease --no-daemon --stacktrace
+    artifacts:
+      - app/build/outputs/**/*.apk
+      - app/build/outputs/**/*.aab
