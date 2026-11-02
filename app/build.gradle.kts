@@ -18,9 +18,17 @@ android {
         versionName = "1.0.0"
     }
 
-    if (cmKeystorePath != null) {
-        signingConfigs {
-            create("release") {
+    signingConfigs {
+        // Firma fija incluida en el proyecto: todas las versiones (debug y release) se instalan
+        // una encima de otra sin perder datos. Para Play Store usa el keystore de Codemagic (ver codemagic.yaml).
+        create("sideload") {
+            storeFile = file("signing/cb-sideload.jks")
+            storePassword = "cbconsultores"
+            keyAlias = "cb"
+            keyPassword = "cbconsultores"
+        }
+        if (cmKeystorePath != null) {
+            create("cmrelease") {
                 storeFile = file(cmKeystorePath)
                 storePassword = System.getenv("CM_KEYSTORE_PASSWORD")
                 keyAlias = System.getenv("CM_KEY_ALIAS")
@@ -30,11 +38,18 @@ android {
     }
 
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("sideload")
+        }
         release {
-            isMinifyEnabled = false
+            // R8 + recorte de recursos: la app release es bastante más rápida y liviana que la debug
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            if (cmKeystorePath != null) {
-                signingConfig = signingConfigs.getByName("release")
+            signingConfig = if (System.getenv("CM_USE_PLAY_KEY") == "true" && cmKeystorePath != null) {
+                signingConfigs.getByName("cmrelease")
+            } else {
+                signingConfigs.getByName("sideload")
             }
         }
     }

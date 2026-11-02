@@ -1,2 +1,5 @@
 -keep class org.bouncycastle.** { *; }
 -dontwarn org.bouncycastle.**
+-keep class kotlinx.coroutines.** { *; }
+-dontwarn kotlinx.coroutines.**
+-keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod
