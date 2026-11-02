@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.appscz.cbfinance.data.*
 import com.appscz.cbfinance.ui.*
+import com.appscz.cbfinance.util.DownloadsSaver
 import com.appscz.cbfinance.util.Files
 import com.appscz.cbfinance.util.Fmt
 import com.appscz.cbfinance.util.PdfReports
@@ -67,14 +68,11 @@ private fun DateFilterBar(fi: String, ff: String, onFi: (String) -> Unit, onFf: 
                 DateField("Hasta", ff, onFf, Modifier.weight(1f))
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                Button(onClick = onApply, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Filled.FilterList, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(4.dp)); Text("Filtrar")
-                }
-                OutlinedButton(onClick = onClear, modifier = Modifier.weight(1f)) { Text("Limpiar") }
-                FilledTonalButton(onClick = onPdf, enabled = !busy, modifier = Modifier.weight(1f)) {
+                Button(onClick = onApply, modifier = Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 6.dp)) { Text("Filtrar", maxLines = 1) }
+                OutlinedButton(onClick = onClear, modifier = Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 6.dp)) { Text("Limpiar", maxLines = 1) }
+                FilledTonalButton(onClick = onPdf, enabled = !busy, modifier = Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 6.dp)) {
                     Icon(Icons.Filled.PictureAsPdf, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(4.dp)); Text("PDF")
+                    Spacer(Modifier.width(4.dp)); Text("PDF", maxLines = 1)
                 }
             }
         }
@@ -120,7 +118,8 @@ fun DashboardScreen(empresaId: Long, empresaNombre: String) {
                     scope.launch {
                         try {
                             val f = io { PdfReports.dashboard(ctx, empresaNombre, d, Filtro(fi, ff)) }
-                            ctx.startActivity(Files.shareIntent(ctx, f, "application/pdf", "Compartir dashboard PDF"))
+                            val ruta = io { DownloadsSaver.deliver(ctx, f, "application/pdf") }
+                            notify("PDF guardado en $ruta", true)
                         } catch (e: Exception) {
                             notify("No se pudo generar el PDF: ${e.message}", false)
                         }
@@ -176,7 +175,7 @@ private fun RecentRow(r: Rec) {
             Text(r.str("producto"), fontWeight = FontWeight.SemiBold, fontSize = 13.sp, maxLines = 1)
             Text("${Fmt.fecha(r.str("fecha"))} · ${r.str("tipo_documento")} · Cant. ${Fmt.qty(r.dbl("cantidad"))}", fontSize = 11.sp, color = CB.Gray)
         }
-        Text(Fmt.bs(r.dbl("total")), fontWeight = FontWeight.Bold, fontSize = 13.sp, color = CB.Primary)
+        Text(Fmt.bs(r.dbl("total")), fontWeight = FontWeight.Bold, fontSize = 13.sp, color = CB.Title)
     }
     HorizontalDivider(color = CB.Line)
 }
@@ -201,7 +200,7 @@ fun PlanillaResumenRow(p: ResumenPlanilla) {
 @Composable
 fun MesesDetalle(m: Map<String, List<Rec>>) {
     for ((per, items) in m) {
-        Text(Fmt.mesLabel(per), fontWeight = FontWeight.Bold, color = CB.Primary, modifier = Modifier.padding(top = 6.dp))
+        Text(Fmt.mesLabel(per), fontWeight = FontWeight.Bold, color = CB.Title, modifier = Modifier.padding(top = 6.dp))
         for (r in items) {
             Row(modifier = Modifier
                 .fillMaxWidth()
@@ -272,7 +271,8 @@ fun ReportesScreen(empresaId: Long, empresaNombre: String) {
                             scope.launch {
                                 try {
                                     val f = io { PdfReports.reporte(ctx, empresaNombre, r, filtro) }
-                                    ctx.startActivity(Files.shareIntent(ctx, f, "application/pdf", "Compartir reporte PDF"))
+                                    val ruta = io { DownloadsSaver.deliver(ctx, f, "application/pdf") }
+                                    notify("PDF guardado en $ruta", true)
                                 } catch (e: Exception) {
                                     notify("No se pudo generar el PDF: ${e.message}", false)
                                 }

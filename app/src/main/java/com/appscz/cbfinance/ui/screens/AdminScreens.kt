@@ -5,6 +5,7 @@ package com.appscz.cbfinance.ui.screens
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -26,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import com.appscz.cbfinance.data.*
 import com.appscz.cbfinance.ui.*
 import com.appscz.cbfinance.util.Backup
+import com.appscz.cbfinance.util.DownloadsSaver
 import com.appscz.cbfinance.util.Files
 import com.appscz.cbfinance.util.io
 import kotlinx.coroutines.launch
@@ -67,13 +69,14 @@ fun UsuariosScreen() {
                 val activo = u.lng("activo") == 1L
                 Card(
                     shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    border = BorderStroke(2.dp, CB.Accent),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Column(modifier = Modifier.padding(14.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(u.str("nombre_completo"), fontWeight = FontWeight.Bold, fontSize = 16.sp, color = CB.Primary)
+                                Text(u.str("nombre_completo"), fontWeight = FontWeight.Bold, fontSize = 16.sp, color = CB.Title)
                                 Text("@${u.str("username")} · ${u.str("email")}", fontSize = 12.sp, color = CB.Gray)
                             }
                             Text(
@@ -248,14 +251,15 @@ fun EmpresasScreen(onChanged: () -> Unit) {
                 val activo = e.lng("activo") == 1L
                 Card(
                     shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    border = BorderStroke(2.dp, CB.Accent),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Column(modifier = Modifier.padding(14.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Filled.Business, contentDescription = null, tint = CB.Accent)
                             Spacer(Modifier.width(8.dp))
-                            Text(e.str("nombre"), fontWeight = FontWeight.Bold, fontSize = 16.sp, color = CB.Primary, modifier = Modifier.weight(1f))
+                            Text(e.str("nombre"), fontWeight = FontWeight.Bold, fontSize = 16.sp, color = CB.Title, modifier = Modifier.weight(1f))
                             Text(if (activo) "Activa" else "Inactiva", fontSize = 12.sp, color = if (activo) CB.Success else CB.Gray, fontWeight = FontWeight.Bold)
                         }
                         Text("NIT: ${e.str("nit")}", fontSize = 12.sp, color = CB.Gray)
@@ -405,6 +409,23 @@ fun BackupScreen(onRestored: () -> Unit) {
             ) {
                 Icon(Icons.Filled.Save, contentDescription = null)
                 Spacer(Modifier.width(8.dp)); Text("Guardar respaldo en el dispositivo")
+            }
+            Spacer(Modifier.height(8.dp))
+            FilledTonalButton(
+                onClick = {
+                    scope.launch {
+                        try {
+                            val ruta = io { DownloadsSaver.deliver(ctx, Backup.snapshot(ctx), Backup.MIME_DB) }
+                            notify("Respaldo guardado en $ruta", true)
+                        } catch (e: Exception) {
+                            notify("No se pudo crear el respaldo: ${e.message}", false)
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Filled.Download, contentDescription = null)
+                Spacer(Modifier.width(8.dp)); Text("Guardar respaldo en Descargas")
             }
             Spacer(Modifier.height(8.dp))
             OutlinedButton(

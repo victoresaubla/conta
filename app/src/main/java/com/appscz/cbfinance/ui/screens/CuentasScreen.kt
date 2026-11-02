@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -150,7 +151,7 @@ fun CuentasScreen(tipo: CuentaTipo, empresaId: Long) {
                             scope.launch {
                                 try {
                                     val t = io { CuentasRepo.exportarDatos(tipo, empresaId, fi, ff) }
-                                    shareExcel(ctx, t, tipo.table)
+                                    notify("Excel guardado en " + downloadExcel(ctx, t, tipo.table), true)
                                 } catch (e: Exception) {
                                     notify("No se pudo exportar: ${e.message}", false)
                                 }
@@ -168,7 +169,7 @@ fun CuentasScreen(tipo: CuentaTipo, empresaId: Long) {
                         onClick = {
                             scope.launch {
                                 try {
-                                    shareExcel(ctx, CuentasRepo.plantilla(tipo), "plantilla_" + tipo.table)
+                                    notify("Plantilla guardada en " + downloadExcel(ctx, CuentasRepo.plantilla(tipo), "plantilla_" + tipo.table), true)
                                 } catch (e: Exception) {
                                     notify("No se pudo generar la plantilla: ${e.message}", false)
                                 }
@@ -240,23 +241,18 @@ private fun CuentaCard(tipo: CuentaTipo, c: Rec, color: Color, onPago: () -> Uni
     val vencida = estado != "Pagada" && c.str("fecha_vencimiento").isNotBlank() && c.str("fecha_vencimiento") < Fmt.today()
     Card(
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(2.dp, if (vencida) CB.Red else color),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
-            Box(
-                modifier = Modifier
-                    .width(5.dp)
-                    .fillMaxHeight()
-                    .background(if (vencida) CB.Red else color)
-            )
             Column(modifier = Modifier.padding(12.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("#${c.lng("id")} · ${c.str("tipo_documento")} ${c.str("numero_documento")}", fontSize = 12.sp, color = CB.Gray, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     StatusChip(estado)
                 }
                 Spacer(Modifier.height(4.dp))
-                Text(c.str("razon_social"), fontWeight = FontWeight.Bold, fontSize = 15.sp, color = CB.Primary, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(c.str("razon_social"), fontWeight = FontWeight.Bold, fontSize = 15.sp, color = CB.Title, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Text("NIT/CI: ${c.str("nit_ci")}", fontSize = 12.sp, color = CB.Gray)
                 Text(c.str("concepto"), fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Spacer(Modifier.height(4.dp))

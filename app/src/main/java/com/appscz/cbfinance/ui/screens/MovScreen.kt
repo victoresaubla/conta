@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -28,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.appscz.cbfinance.data.*
 import com.appscz.cbfinance.ui.*
+import com.appscz.cbfinance.util.DownloadsSaver
 import com.appscz.cbfinance.util.Files
 import com.appscz.cbfinance.util.Fmt
 import com.appscz.cbfinance.util.Xlsx
@@ -47,14 +49,13 @@ fun kindColor(k: Kind): Color = when (k) {
     Kind.REGIMEN -> CB.Teal
 }
 
-/** Comparte una tabla como archivo Excel. */
-suspend fun shareExcel(ctx: android.content.Context, t: TableData, prefix: String) {
-    val f = io {
+/** Genera el Excel y lo guarda directamente en Descargas/CB_Consultores. Devuelve la ruta. */
+suspend fun downloadExcel(ctx: android.content.Context, t: TableData, prefix: String): String {
+    return io {
         val file = File(Files.exportsDir(ctx), prefix + "_" + Files.stamp() + ".xlsx")
         file.outputStream().use { Xlsx.write(it, t) }
-        file
+        DownloadsSaver.deliver(ctx, file, XLSX_MIME)
     }
-    ctx.startActivity(Files.shareIntent(ctx, f, XLSX_MIME, "Compartir Excel"))
 }
 
 @Composable
@@ -71,7 +72,7 @@ fun MovScreen(kind: Kind, empresaId: Long) {
     var ff by remember { mutableStateOf("") }
     var razon by remember { mutableStateOf("") }
     var page by remember { mutableStateOf(1) }
-    var perPage by remember { mutableStateOf(50) }
+    var perPage by remember { mutableStateOf(25) }
     var tick by remember { mutableStateOf(0) }
     var result by remember { mutableStateOf<PageResult?>(null) }
     var razones by remember { mutableStateOf<List<String>>(emptyList()) }
@@ -179,7 +180,7 @@ fun MovScreen(kind: Kind, empresaId: Long) {
                             scope.launch {
                                 try {
                                     val t = io { MovRepo.exportarDatos(kind, empresaId, fi, ff) }
-                                    shareExcel(ctx, t, kind.table)
+                                    notify("Excel guardado en " + downloadExcel(ctx, t, kind.table), true)
                                 } catch (e: Exception) {
                                     notify("No se pudo exportar: ${e.message}", false)
                                 }
@@ -197,7 +198,7 @@ fun MovScreen(kind: Kind, empresaId: Long) {
                         onClick = {
                             scope.launch {
                                 try {
-                                    shareExcel(ctx, MovRepo.plantilla(kind), "plantilla_" + kind.table)
+                                    notify("Plantilla guardada en " + downloadExcel(ctx, MovRepo.plantilla(kind), "plantilla_" + kind.table), true)
                                 } catch (e: Exception) {
                                     notify("No se pudo generar la plantilla: ${e.message}", false)
                                 }
@@ -274,7 +275,7 @@ fun MovScreen(kind: Kind, empresaId: Long) {
         ExtendedFloatingActionButton(
             onClick = { editing = null; formOpen = true },
             icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-            text = { Text("Nuevo ${kind.singular}") },
+            text = { Text(kind.newLabel) },
             containerColor = CB.Accent,
             contentColor = Color.White,
             modifier = Modifier
@@ -325,23 +326,18 @@ private fun RecordCard(kind: Kind, r: Rec, color: Color, onDelete: () -> Unit, o
     val estado = if (esPlanilla) "Planilla" else r.str(kind.estadoCol).ifBlank { if (kind == Kind.VENTAS) "Cobrada" else "Pagada" }
     Card(
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(2.dp, color),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
-            Box(
-                modifier = Modifier
-                    .width(5.dp)
-                    .fillMaxHeight()
-                    .background(color)
-            )
             Column(modifier = Modifier.padding(12.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("#${r.lng("id")} · ${Fmt.fecha(r.str("fecha"))}", fontSize = 12.sp, color = CB.Gray, modifier = Modifier.weight(1f))
                     StatusChip(estado)
                 }
                 Spacer(Modifier.height(4.dp))
-                Text(r.str("razon_social"), fontWeight = FontWeight.Bold, fontSize = 15.sp, color = CB.Primary, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(r.str("razon_social"), fontWeight = FontWeight.Bold, fontSize = 15.sp, color = CB.Title, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 val doc = buildString {
                     append(r.str("tipo_documento"))
                     if (r.str("numero_factura").isNotBlank()) append(" Nº ").append(r.str("numero_factura"))
@@ -436,7 +432,7 @@ private fun PlanillaDialog(kind: Kind, empresaId: Long, id: Long, onClose: () ->
                     LabeledValue("Ministerio de Trabajo", "- " + Fmt.bs(p.dbl("descuento_ministerio_trabajo")), color = CB.Danger)
                     LabeledValue("Horas extras", "+ " + Fmt.bs(p.dbl("horas_extras")), color = CB.Success)
                     HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
-                    LabeledValue("TOTAL NETO", Fmt.bs(p.dbl("total_neto")), bold = true, color = CB.Primary)
+                    LabeledValue("TOTAL NETO", Fmt.bs(p.dbl("total_neto")), bold = true, color = CB.Title)
                     if (p.str("observaciones").isNotBlank()) {
                         Spacer(Modifier.height(6.dp))
                         Text(p.str("observaciones"), fontSize = 12.sp, color = CB.Gray)
@@ -604,7 +600,7 @@ fun MovForm(kind: Kind, empresaId: Long, editing: Rec?, onDone: () -> Unit, onCa
         ) {
             IconButton(onClick = onCancel) { Icon(Icons.Filled.Close, contentDescription = "Cerrar", tint = Color.White) }
             Text(
-                (if (isEdit) "Editar " else "Nuevo ") + kind.singular + (if (isEdit) " #${editing?.lng("id")}" else ""),
+                (if (isEdit) "Editar " + kind.singular else kind.newLabel) + (if (isEdit) " #${editing?.lng("id")}" else ""),
                 color = Color.White, fontWeight = FontWeight.Bold, fontSize = 17.sp, modifier = Modifier.weight(1f)
             )
             TextButton(onClick = { save(false) }, enabled = !saving) {

@@ -84,7 +84,7 @@ fun LoginScreen(onLoggedIn: (Boolean) -> Unit) {
         ) {
             Card(
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 12.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -97,7 +97,7 @@ fun LoginScreen(onLoggedIn: (Boolean) -> Unit) {
                         contentAlignment = Alignment.Center
                     ) { Icon(Icons.Filled.AccountBalance, contentDescription = null, tint = Color.White, modifier = Modifier.size(38.dp)) }
                     Spacer(Modifier.height(12.dp))
-                    Text("C&B CONSULTORES", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = CB.Primary)
+                    Text("C&B CONSULTORES", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = CB.Title)
                     Text("Gestión Financiera Multi-Empresa", fontSize = 13.sp, color = CB.Gray)
                     Spacer(Modifier.height(16.dp))
                     OutlinedTextField(
@@ -164,13 +164,13 @@ fun SelectEmpresaScreen(onSelected: () -> Unit, onLogout: () -> Unit) {
     ) {
         Card(
             shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             modifier = Modifier
                 .padding(20.dp)
                 .fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
-                Text("Selecciona una empresa", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = CB.Primary)
+                Text("Selecciona una empresa", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = CB.Title)
                 Text("Elige con cuál empresa deseas trabajar", fontSize = 13.sp, color = CB.Gray)
                 Spacer(Modifier.height(12.dp))
                 Column(modifier = Modifier.verticalScroll(rememberScrollState()).heightIn(max = 420.dp)) {
@@ -185,14 +185,14 @@ fun SelectEmpresaScreen(onSelected: () -> Unit, onLogout: () -> Unit) {
                                     onSelected()
                                 },
                             shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FA)),
-                            border = androidx.compose.foundation.BorderStroke(2.dp, Color(0xFFE9ECEF))
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                            border = androidx.compose.foundation.BorderStroke(2.dp, CB.Line)
                         ) {
                             Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Filled.Business, contentDescription = null, tint = CB.LoginBlue, modifier = Modifier.size(32.dp))
                                 Spacer(Modifier.width(12.dp))
                                 Column {
-                                    Text(e.str("nombre"), fontWeight = FontWeight.SemiBold, color = CB.Primary)
+                                    Text(e.str("nombre"), fontWeight = FontWeight.SemiBold, color = CB.Title)
                                     Text("NIT: ${e.str("nit")}", fontSize = 12.sp, color = CB.Gray)
                                 }
                             }
@@ -235,7 +235,7 @@ fun PerfilScreen(onEmpresaChanged: () -> Unit) {
                 ) { Text(u.nombre.take(1).uppercase(), color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold) }
                 Spacer(Modifier.width(14.dp))
                 Column {
-                    Text(u.nombre, fontWeight = FontWeight.Bold, fontSize = 17.sp, color = CB.Primary)
+                    Text(u.nombre, fontWeight = FontWeight.Bold, fontSize = 17.sp, color = CB.Title)
                     Text(u.rolLabel, fontSize = 12.sp, color = CB.Accent, fontWeight = FontWeight.SemiBold)
                 }
             }
