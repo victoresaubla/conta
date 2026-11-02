@@ -1,3 +1,5 @@
+import java.util.Base64
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -10,7 +12,7 @@ val cmKeystorePath: String? = System.getenv("CM_KEYSTORE_PATH")
 val sideloadJks = file("cb-sideload.jks")
 val sideloadB64 = file("cb-sideload.b64")
 if (!sideloadJks.exists() && sideloadB64.exists()) {
-    sideloadJks.writeBytes(java.util.Base64.getMimeDecoder().decode(sideloadB64.readText().trim()))
+    sideloadJks.writeBytes(Base64.getMimeDecoder().decode(sideloadB64.readText().trim()))
 }
 
 android {
